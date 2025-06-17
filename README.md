@@ -1,3 +1,4 @@
 # cpp-practice
-This is a workspace specifically to test out implementation of some cpp standard to understand them better. 
-Each files should be stand alone. Run it with online C++ compiler. 
+A cpp practice or implementation test ground. If you discover some interesting patterns or class implementation, mimic them and push them in this repository.
+
+Each files in `.../src/` should contains their `int main()` functions.  
