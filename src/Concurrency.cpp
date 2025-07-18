@@ -125,6 +125,16 @@ public:
     {
         {
             std::lock_guard<std::mutex> lock(m_Mutex);
+            // Check for duplicate orderID
+            auto it = std::find_if(m_Transactions.begin(), m_Transactions.end(), [&orderID](const std::shared_ptr<Transaction>& transaction)
+                {
+                    return transaction->GetOrderID() == orderID;
+                });
+            if (it != m_Transactions.end()) 
+            {
+                // Duplicate found, do nothing
+                return;
+            }
             auto t = std::make_shared<Transaction>(transactType, orderType, price, quantity, orderID);
             m_Transactions.push_back(t);
         }
@@ -144,6 +154,7 @@ public:
             {
                 m_Transactions.erase(it);
             }
+            // If not found, do nothing (as per instruction)
         }
         m_CV.notify_one();
 
@@ -194,13 +205,12 @@ public:
         }
     }
 
-    void MatchTransaction()
+private:
+    void SplitOrders(const std::vector<std::shared_ptr<Transaction>>& all,
+                     std::vector<std::shared_ptr<Transaction>>& buys,
+                     std::vector<std::shared_ptr<Transaction>>& sells)
     {
-        // Set matching in progress flag to coordinate with other operations
-        m_MatchingInProgress = true;
-
-        std::vector<std::shared_ptr<Transaction>> buys, sells;
-        for (const auto& t : m_Transactions)
+        for (const auto& t : all)
         {
             if (t->GetTransactionType() == ETransactType::BUY)
             {
@@ -211,11 +221,25 @@ public:
                 sells.push_back(t);
             }
         }
+    }
 
-        // FIX: Sort sells in ascending order (lowest price first) for proper matching
-        std::sort(buys.begin(), buys.end(), [](const std::shared_ptr<Transaction>& a, const std::shared_ptr<Transaction>& b) { return a->GetPrice() > b->GetPrice(); });
-        std::sort(sells.begin(), sells.end(), [](const std::shared_ptr<Transaction>& a, const std::shared_ptr<Transaction>& b) { return a->GetPrice() < b->GetPrice(); });
+    void SortOrders(std::vector<std::shared_ptr<Transaction>>& buys,
+                   std::vector<std::shared_ptr<Transaction>>& sells)
+    {
+        std::sort(buys.begin(), buys.end(), [](const std::shared_ptr<Transaction>& a, const std::shared_ptr<Transaction>& b)
+        {
+            return a->GetPrice() > b->GetPrice();
+        });
+        std::sort(sells.begin(), sells.end(), [](const std::shared_ptr<Transaction>& a, const std::shared_ptr<Transaction>& b)
+        {
+            return a->GetPrice() < b->GetPrice();
+        });
+    }
 
+    std::set<std::shared_ptr<Transaction>> MatchOrders(
+        std::vector<std::shared_ptr<Transaction>>& buys,
+        std::vector<std::shared_ptr<Transaction>>& sells)
+    {
         std::set<std::shared_ptr<Transaction>> toRemove;
         for (const auto& buy : buys)
         {
@@ -228,8 +252,6 @@ public:
                 if (buy->GetPrice() >= sell->GetPrice())
                 {
                     int tradeQty = std::min(buy->GetQuantity(), sell->GetQuantity());
-
-                    // FIX: Use trade price (seller's price) for both sides
                     int tradePrice = sell->GetPrice();
                     std::cout << "TRADE" << " " << buy->GetOrderID() << " " << tradePrice << " " << tradeQty << " " << sell->GetOrderID() << " " << tradePrice << " " << tradeQty << std::endl;
 
@@ -263,7 +285,11 @@ public:
                 }
             }
         }
+        return toRemove;
+    }
 
+    void RemoveMatchedOrders(const std::set<std::shared_ptr<Transaction>>& toRemove)
+    {
         auto it = m_Transactions.begin();
         while (it != m_Transactions.end())
         {
@@ -276,34 +302,54 @@ public:
                 ++it;
             }
         }
+    }
 
-        // Clear the matching in progress flag and notify waiting threads
-        m_MatchingInProgress = false;
-        m_MatchingDoneCV.notify_all();
+public:
+    void MatchTransaction()
+    {
+        std::vector<std::shared_ptr<Transaction>> transactionsCopy;
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            m_MatchingInProgress = true;
+            transactionsCopy = m_Transactions;
+        }
+
+        std::vector<std::shared_ptr<Transaction>> buys, sells;
+        SplitOrders(transactionsCopy, buys, sells);
+        SortOrders(buys, sells);
+        std::set<std::shared_ptr<Transaction>> toRemove = MatchOrders(buys, sells);
+
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            RemoveMatchedOrders(toRemove);
+            m_MatchingInProgress = false;
+            m_MatchingDoneCV.notify_all();
+        }
     }
 
     void PrintTransaction()
     {
-        std::unique_lock<std::mutex> lock(m_Mutex);
-
-        // FIX: Wait for matching to complete before printing to avoid inconsistent state
-        m_MatchingDoneCV.wait(lock, [this] { return !m_MatchingInProgress; });
-
         std::map<int, int, std::greater<int>> sellBook;
         std::map<int, int, std::greater<int>> buyBook;
-
-        for (const auto& element : m_Transactions)
         {
-            if (element->GetTransactionType() == ETransactType::SELL)
+            std::unique_lock<std::mutex> lock(m_Mutex);
+
+            // FIX: Wait for matching to complete before printing to avoid inconsistent state
+            m_MatchingDoneCV.wait(lock, [this] { return !m_MatchingInProgress; });
+
+            for (const auto& element : m_Transactions)
             {
-                sellBook[element->GetPrice()] += element->GetQuantity();
-            }
-            else if (element->GetTransactionType() == ETransactType::BUY)
-            {
-                buyBook[element->GetPrice()] += element->GetQuantity();
+                if (element->GetTransactionType() == ETransactType::SELL)
+                {
+                    sellBook[element->GetPrice()] += element->GetQuantity();
+                }
+                else if (element->GetTransactionType() == ETransactType::BUY)
+                {
+                    buyBook[element->GetPrice()] += element->GetQuantity();
+                }
             }
         }
-
+        // Print outside the lock to reduce lock contention
         std::cout << "SELL:" << std::endl;
         for (const auto& [price, qty] : sellBook)
         {
