@@ -1,4 +1,8 @@
 #include <utility>
+#include <cstdlib>
+#include <ctime>
+#include <algorithm>
+#include <optional>
 #include <iostream>
 
 template <typename T>
@@ -31,7 +35,7 @@ public:
 namespace ListNodeHelper
 {
     template <typename T>
-    void PrintList(ListNode<T>* list)
+    void Print(ListNode<T>* list)
     {
         const ListNode<T>* pCurrent = list;
         while (pCurrent != nullptr)
@@ -44,7 +48,7 @@ namespace ListNodeHelper
     }
 
     template <typename T>
-    bool HasLoop(ListNode<T>* list)
+    bool ContainsLoop(ListNode<T>* list)
     {
         if (list == nullptr || list->pNext == nullptr)
         {
@@ -52,7 +56,7 @@ namespace ListNodeHelper
         }
         
         ListNode<int>* slow = list;
-        ListNode<int>* fast = list->pNext;
+        ListNode<int>* fast = list;
 
         while (fast != nullptr && fast->pNext != nullptr)
         {
@@ -65,28 +69,94 @@ namespace ListNodeHelper
         }
         return false;
     }
+    
+    template <typename T>
+    std::optional<int> GetLoopEntryIndex(ListNode<T>* head)
+    {
+        if (!head || !head->pNext)
+        {
+            return std::nullopt;
+        }
+
+        ListNode<T>* slow = head;
+        ListNode<T>* fast = head;
+
+        while (fast && fast->pNext)
+        {
+            slow = slow->pNext;
+            fast = fast->pNext->pNext;
+
+            if (slow == fast)
+            {
+                break;
+            }
+        }
+
+        if (!fast || !fast->pNext)
+        {
+            return std::nullopt;
+        }
+
+
+        ListNode<T>* entry = head;
+        while (entry != slow)
+        {
+            entry = entry->pNext;
+            slow = slow->pNext;
+        }
+
+        int index = 0;
+        for (ListNode<T>* cur = head; cur != entry; cur = cur->pNext)
+        {
+            ++index;
+        }
+        return index;
+    }
 }
 
-ListNode<int>* CreateLoopedList()
+namespace LinkedListGenerator
 {
-    ListNode<int>* root = new ListNode<int>(1);
-    ListNode<int>* tail = root;
-
-    for (int i = 0; i < 5; i++)
+    ListNode<int>* CreateList_NumericLoopedList(int maxNumber)
     {
-        tail->pNext = new ListNode<int>(i + 2);
-        tail = tail->pNext;
-    }
-    tail->pNext = root->pNext;
-    return root;
+        ListNode<int>* pRoot = new ListNode<int>(1);
+        ListNode<int>* pCurrent = pRoot;
+        ListNode<int>* pLoop = pRoot;
+
+        int selection = rand() % (maxNumber + 1);
+        std::cout << "Loop index picked at : " << std::clamp(selection - 1, 0, maxNumber) << std::endl;
+
+        for (int i = 0; i < maxNumber - 1; ++i)
+        {
+            pCurrent->pNext = new ListNode<int>(i + 2);
+            pCurrent = pCurrent->pNext;
+
+            if (i + 2 == selection)
+            {
+                pLoop = pCurrent;
+            }
+        }
+        pCurrent->pNext = pLoop;
+        return pRoot;
+    };
 }
 
 int main()
 {
-    ListNode<int>* loopingList = CreateLoopedList();
-    if (ListNodeHelper::HasLoop(loopingList))
+    srand(time(NULL));
+    ListNode<int>* list = LinkedListGenerator::CreateList_NumericLoopedList(5);
+    if (ListNodeHelper::ContainsLoop(list))
     {
         std::cout << "list has loop" << std::endl;
+    }
+    else
+    {
+        ListNodeHelper::Print(list);
+    }
+
+    std::optional result = ListNodeHelper::GetLoopEntryIndex(list);
+    if (result.has_value())
+    {
+        std::cout << "loop entry index detected at : " << result.value() << std::endl;
     }
     
     system("pause");
