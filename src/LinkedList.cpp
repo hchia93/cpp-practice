@@ -320,7 +320,7 @@ namespace ListNodeHelper
 	{
 		ListNode<T>* dummy = new ListNode<T>();
 		dummy->pNext = head;
-	
+
 		ListNode<T>* previous = dummy;
 		ListNode<T>* current = head;
 
@@ -399,6 +399,85 @@ namespace ListNodeHelper
 		ListNode<T>* right = Sort(slow);
 
 		return Merge(left, right);
+	}
+
+	// Leet Code 328 - Odd even linked list
+	template <typename T>
+	ListNode<T>* OddEvenSort(ListNode<T>* head)
+	{
+		ListNode<T> dummyOdd;
+		ListNode<T>* tailOdd = &dummyOdd;
+
+		ListNode<T> dummyEven;
+		ListNode<T>* tailEven = &dummyEven;
+
+		bool isOddTurn = true;
+		while (head != nullptr)
+		{
+			if (isOddTurn)
+			{
+				// here we add odd node to the tail, then we move this node to the next
+				tailOdd->pNext = head;
+				tailOdd = tailOdd->pNext;
+			}
+			else
+			{
+				tailEven->pNext = head;
+				tailEven = tailEven->pNext;
+			}
+
+			head = head->pNext;
+			isOddTurn = !isOddTurn;
+		}
+
+		tailEven->pNext = nullptr;
+
+		// head is now pointing to the odd list last node
+		tailOdd->pNext = dummyEven.pNext;
+		return dummyOdd.pNext;
+	}
+
+	// Leet Code 725
+	template <typename T>
+	std::vector<ListNode<T>*> SplitByKParts(ListNode<T>* head, int k)
+	{
+		// Size and length calculation.
+		int size = 0;
+		for (auto current = head; current != nullptr; current = current->pNext)
+		{
+			++size;
+		}
+
+		int baseLen = size / k;
+		int extra = size % k;
+
+		// Init result vector
+		std::vector<ListNode<T>*> result(k, nullptr);
+
+		// Processing parts
+		ListNode<T>* current = head;
+		for (int i = 0; i < k && current != nullptr; ++i)
+		{
+			int partSize = baseLen + (i < extra ? 1 : 0);
+
+			result[i] = current;
+			for (int j = 1; j < partSize; ++j)
+			{
+				if (current != nullptr)
+				{
+					current = current->pNext;
+				}
+			}
+
+			// Moving to next part
+			if (current != nullptr)
+			{
+				ListNode<T>* nextPart = current->pNext;
+				current->pNext = nullptr;
+				current = nextPart;
+			}
+		}
+		return result;
 	}
 
 	// Leet Code 206 - Reverse a linked list
@@ -488,7 +567,7 @@ namespace ListNodeTester
 {
 	// Extends if test function returns more possible types.
 	template <typename T>
-	using TestResult = std::variant<ListNode<T>*, bool, std::optional<int>>;
+	using TestResult = std::variant<ListNode<T>*, std::vector<ListNode<T>*>, bool, std::optional<int>>;
 
 	template <typename T>
 	static void MakeTest(const char* testName, const std::function<TestResult<T>()>& testFunction)
@@ -503,6 +582,16 @@ namespace ListNodeTester
 				{
 					ListNodeHelper::Print(value);
 					ListNodeHelper::FreeList(value);
+				}
+				else if constexpr (std::is_same_v<U, std::vector<ListNode<T>*>>)
+				{
+					std::cout << "[" << std::endl;
+					for (auto part : value)
+					{
+						ListNodeHelper::Print(part);
+						ListNodeHelper::FreeList(part);
+					}
+					std::cout << "]" << std::endl;
 				}
 				else if constexpr (std::is_same_v<U, bool>)
 				{
@@ -531,62 +620,62 @@ namespace ListNodeTester
 int main()
 {
 	// Test cases for LeetCode 82 (Remove all duplicates)
-	ListNodeTester::MakeTest<int>("No82a", [] { 
-		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 3, 3, 4, 4, 5 }); 
-		ListNodeHelper::Print("No82a", list);  
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+	ListNodeTester::MakeTest<int>("No82a", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 3, 3, 4, 4, 5 });
+		ListNodeHelper::Print("No82a", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
 	ListNodeTester::MakeTest<int>("No82b", [] {
-		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 1, 2, 3 }); 
-		ListNodeHelper::Print("No82b", list); 
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 1, 2, 3 });
+		ListNodeHelper::Print("No82b", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
-	ListNodeTester::MakeTest<int>("No82c", [] { 
-		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 2, 2 }); 
-		ListNodeHelper::Print("No82c", list); 
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+	ListNodeTester::MakeTest<int>("No82c", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 2, 2 });
+		ListNodeHelper::Print("No82c", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
-	ListNodeTester::MakeTest<int>("No82d", [] { 
-		auto list = ListNodeCreator::MakeNumericList({ 1, 1 }); 
-		ListNodeHelper::Print("No82d", list); 
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+	ListNodeTester::MakeTest<int>("No82d", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 1 });
+		ListNodeHelper::Print("No82d", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
-	ListNodeTester::MakeTest<int>("No82e", [] { 
-		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 2 }); 
-		ListNodeHelper::Print("No82e", list); 
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+	ListNodeTester::MakeTest<int>("No82e", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 2 });
+		ListNodeHelper::Print("No82e", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
 	ListNodeTester::MakeTest<int>("No82f", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 2, 2, 3, 3 });
-		ListNodeHelper::Print("No82f", list); 
-		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list)); 
+		ListNodeHelper::Print("No82f", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveDuplicates(list));
 		});
 
-	ListNodeTester::MakeTest<int>("No83", [] { 
-		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 1, 2, 2, 3 }); 
+	ListNodeTester::MakeTest<int>("No83", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 1, 1, 2, 2, 3 });
 		ListNodeHelper::Print("No83", list);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::MakeUnique(list)); 
+		return ListNodeTester::TestResult<int>(ListNodeHelper::MakeUnique(list));
 		});
 
-	ListNodeTester::MakeTest<int>("No141", [] { 
-		auto list = ListNodeCreator::MakeNumericListLooped(8); 
-		bool result = ListNodeHelper::ContainsLoop(list); 
+	ListNodeTester::MakeTest<int>("No141", [] {
+		auto list = ListNodeCreator::MakeNumericListLooped(8);
+		bool result = ListNodeHelper::ContainsLoop(list);
 		// DO NOT PRINT THIS LIST, IT IS LOOPED
-		ListNodeHelper::FreeList(list); 
-		return ListNodeTester::TestResult<int>(result);	
+		ListNodeHelper::FreeList(list);
+		return ListNodeTester::TestResult<int>(result);
 		});
 
-	ListNodeTester::MakeTest<int>("No142", [] { 
-		auto list = ListNodeCreator::MakeNumericListLooped(16); 
-		std::optional<int> result = ListNodeHelper::GetLoopEntryIndex(list); 
+	ListNodeTester::MakeTest<int>("No142", [] {
+		auto list = ListNodeCreator::MakeNumericListLooped(16);
+		std::optional<int> result = ListNodeHelper::GetLoopEntryIndex(list);
 		// DO NOT PRINT THIS LIST, IT IS LOOPED
-		ListNodeHelper::FreeList(list); 
-		return ListNodeTester::TestResult<int>(result); 
+		ListNodeHelper::FreeList(list);
+		return ListNodeTester::TestResult<int>(result);
 		});
 
 	ListNodeTester::MakeTest<int>("Merge1", [] {
@@ -641,6 +730,22 @@ int main()
 		ListNodeHelper::Print("No206", list);
 		return ListNodeTester::TestResult<int>(
 			ListNodeHelper::Reverse(list)
+		);
+		});
+
+	ListNodeTester::MakeTest<int>("No328", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
+		ListNodeHelper::Print("No328", list);
+		return ListNodeTester::TestResult<int>(
+			ListNodeHelper::OddEvenSort(list)
+		);
+		});
+
+	ListNodeTester::MakeTest<int>("No725a", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5, 6, 7 });
+		ListNodeHelper::Print("Original", list);
+		return ListNodeTester::TestResult<int>(
+			ListNodeHelper::SplitByKParts(list, 3)
 		);
 		});
 
