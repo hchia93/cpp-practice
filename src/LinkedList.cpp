@@ -80,6 +80,7 @@ namespace ListNodeHelper
 
 	struct LoopDetector
 	{
+		// LeetCode 141 - Detect if a loop exists in the linked list
 		template <typename T>
 		static ListNode<T>* DetectMeetingPoint(ListNode<T>* head)
 		{
@@ -97,6 +98,7 @@ namespace ListNodeHelper
 			return nullptr;
 		}
 
+		// LeetCode 142 - Find the entry point of the loop
 		template <typename T>
 		static ListNode<T>* FindLoopEntry(ListNode<T>* head, ListNode<T>* meeting)
 		{
@@ -132,7 +134,6 @@ namespace ListNodeHelper
 		}
 	};
 
-
 	template <typename T>
 	void BreakLoop(ListNode<T>* head)
 	{
@@ -147,25 +148,6 @@ namespace ListNodeHelper
 		if (tail)
 		{
 			tail->pNext = nullptr;
-		}
-	}
-
-
-	template <typename T>
-	void FreeList(ListNode<T>* head)
-	{
-		if (!head)
-		{
-			return;
-		}
-
-		BreakLoop(head);
-
-		while (head != nullptr)
-		{
-			ListNode<T>* next = head->pNext;
-			delete head;
-			head = next;
 		}
 	}
 
@@ -189,6 +171,47 @@ namespace ListNodeHelper
 			++index;
 		}
 		return index;
+	}
+
+	struct IntersectionDetector
+	{
+		// LeetCode 160 - Detect intersection of two linked lists
+		template <typename T>
+		static ListNode<T>* DetectIntersection(ListNode<T>* head1, ListNode<T>* head2)
+		{
+			if (!head1 || !head2)
+			{
+				return nullptr;
+			}
+
+			ListNode<T>* current1 = head1;
+			ListNode<T>* current2 = head2;
+
+			while (current1 != current2)
+			{
+				current1 = (current1 == nullptr) ? head2 : current1->pNext;
+				current2 = (current2 == nullptr) ? head1 : current2->pNext;
+			}
+			return current1;
+		}
+	};;
+
+	template <typename T>
+	void FreeList(ListNode<T>* head)
+	{
+		if (!head)
+		{
+			return;
+		}
+
+		BreakLoop(head);
+
+		while (head != nullptr)
+		{
+			ListNode<T>* next = head->pNext;
+			delete head;
+			head = next;
+		}
 	}
 
 	// Leet Code 82 - If a node is ever duplicated, remove them entirely
@@ -342,6 +365,54 @@ namespace ListNodeHelper
 
 		return newHead;
 	}
+
+	// Leet Code 148 - Sort a linked list into ascending order
+	template <typename T>
+	ListNode<T>* Sort(ListNode<T>* head)
+	{
+		if (!head || !head->pNext)
+		{
+			return head;
+		}
+
+		ListNode<T>* slow = head;
+		ListNode<T>* fast = head;
+		ListNode<T>* previous = nullptr;
+
+		while (fast && fast->pNext)
+		{
+			previous = slow;
+			slow = slow->pNext;
+			fast = fast->pNext->pNext;
+		}
+
+		if (previous)
+		{
+			previous->pNext = nullptr;
+		}
+
+		ListNode<T>* left = Sort(head);
+		ListNode<T>* right = Sort(slow);
+
+		return Merge(left, right);
+	}
+
+	// Leet Code 206 - Reverse a linked list
+	template <typename T>
+	ListNode<T>* Reverse(ListNode<T>* head)
+	{
+		ListNode<T>* previous = nullptr;
+		ListNode<T>* current = head;
+		ListNode<T>* next = nullptr;
+		while (current != nullptr)
+		{
+			next = current->pNext; // Store next node
+			current->pNext = previous; // Reverse the link
+			previous = current; // Move previous to current
+			current = next; // Move to next node
+		}
+		return previous; // New head of the reversed list
+	}
 }
 
 namespace ListNodeCreator
@@ -486,6 +557,17 @@ int main()
 		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
 		});
 
+	ListNodeTester::MakeTest<int>("Merge4", [] {
+		auto list1 = (ListNode<int>*)nullptr;
+		auto list2 = (ListNode<int>*)nullptr;
+		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
+		});
+
+	ListNodeTester::MakeTest<int>("Merge5", [] {
+		auto list1 = ListNodeCreator::MakeNumericList({ 1, 2, 2, 4 });
+		auto list2 = ListNodeCreator::MakeNumericList({ 2, 3, 4 });
+		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
+		});
 
 	system("pause");
 	return 0;
