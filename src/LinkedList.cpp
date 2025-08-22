@@ -346,6 +346,41 @@ namespace ListNodeHelper
 		return newHead;
 	}
 
+	// Leet Code 19 - Remove the nth node from the end of the list
+	template <typename T>
+	ListNode<T>* RemoveNthElementFromEnd(ListNode<T>* head, int n)
+	{
+		ListNode<T> dummy;
+		dummy.pNext = head;
+
+		ListNode<T>* slow = &dummy;
+		ListNode<T>* fast = &dummy;
+
+		for (int i = 0; i < n + 1; ++i)
+		{
+			if (fast == nullptr)
+			{
+				return nullptr;
+			}
+			fast = fast->pNext;
+		}
+
+		while (fast != nullptr)
+		{
+			slow = slow->pNext;
+			fast = fast->pNext;
+		}
+
+		if (slow && slow->pNext != nullptr)
+		{
+			ListNode<T>* toDelete = slow->pNext;
+			slow->pNext = slow->pNext->pNext;
+			delete toDelete;
+		}
+		
+		return dummy.pNext;
+	}
+
 	template <typename T>
 	ListNode<T>* Merge(ListNode<T>* head1, ListNode<T>* head2)
 	{
@@ -619,7 +654,18 @@ namespace ListNodeTester
 
 int main()
 {
-	// Test cases for LeetCode 82 (Remove all duplicates)
+	ListNodeTester::MakeTest<int>("No19a", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5, 6, 7, 8 });
+		ListNodeHelper::Print("No19a", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveNthElementFromEnd(list, 4));
+		});
+
+	ListNodeTester::MakeTest<int>("No19b", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5});
+		ListNodeHelper::Print("No19b", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveNthElementFromEnd(list, 2));
+		});
+
 	ListNodeTester::MakeTest<int>("No82a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 3, 3, 4, 4, 5 });
 		ListNodeHelper::Print("No82a", list);
@@ -743,7 +789,7 @@ int main()
 
 	ListNodeTester::MakeTest<int>("No725a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5, 6, 7 });
-		ListNodeHelper::Print("Original", list);
+		ListNodeHelper::Print("No725a", list);
 		return ListNodeTester::TestResult<int>(
 			ListNodeHelper::SplitByKParts(list, 3)
 		);
