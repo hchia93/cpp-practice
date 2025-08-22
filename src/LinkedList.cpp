@@ -227,6 +227,21 @@ namespace ListNodeHelper
 		}
 	}
 
+	// Leet Code 876
+	template <typename T>
+	ListNode<T>* GetMiddleNode(ListNode<T>* head)
+	{
+		ListNode<T>* slow = head;
+		ListNode<T>* fast = head;
+
+		while (fast && fast->pNext)
+		{
+			slow = slow->pNext;
+			fast = fast->pNext->pNext;
+		}
+		return slow;
+	}
+
 	// Leet Code 82 - If a node is ever duplicated, remove them entirely
 	template <typename T>
 	ListNode<T>* RemoveDuplicates(ListNode<T>* head)
@@ -359,6 +374,13 @@ namespace ListNodeHelper
 		return newHead;
 	}
 
+	// Leet Code 3217 - Remove elements from array
+	template <typename T>
+	ListNode<T>* RemoveElement(ListNode<T>* head, std::vector<T>& elements)
+	{
+
+	}
+
 	// Leet Code 19 - Remove the nth node from the end of the list
 	template <typename T>
 	ListNode<T>* RemoveNthElementFromEnd(ListNode<T>* head, int n)
@@ -394,6 +416,7 @@ namespace ListNodeHelper
 		return dummy.pNext;
 	}
 
+	// Leet Code 21 - Merge Sorted
 	template <typename T>
 	ListNode<T>* Merge(ListNode<T>* head1, ListNode<T>* head2)
 	{
@@ -568,7 +591,6 @@ namespace ListNodeHelper
 		return newHead;
 	}
 
-
 	// Leet Code 206 - Reverse a linked list
 	template <typename T>
 	ListNode<T>* Reverse(ListNode<T>* head)
@@ -720,6 +742,14 @@ int main()
 		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveNthElementFromEnd(list, 2));
 		});
 
+	ListNodeTester::MakeTest<int>("No21", [] {
+		auto list1 = ListNodeCreator::MakeNumericList({ 1, 2, 2, 4 });
+		auto list2 = ListNodeCreator::MakeNumericList({ 2, 3, 4 });
+		ListNodeHelper::Print("No21", list1);
+		ListNodeHelper::Print("No21", list2);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
+		});
+
 	ListNodeTester::MakeTest<int>("No61a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
 		ListNodeHelper::Print("No61a", list);
@@ -731,6 +761,8 @@ int main()
 		ListNodeHelper::Print("No61b", list);
 		return ListNodeTester::TestResult<int>(ListNodeHelper::RotateRight(list, 7));
 		});
+
+
 
 	ListNodeTester::MakeTest<int>("No82a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 3, 3, 4, 4, 5 });
@@ -788,46 +820,6 @@ int main()
 		// DO NOT PRINT THIS LIST, IT IS LOOPED
 		ListNodeHelper::FreeList(list);
 		return ListNodeTester::TestResult<int>(result);
-		});
-
-	ListNodeTester::MakeTest<int>("Merge1", [] {
-		auto list1 = ListNodeCreator::MakeNumericList({ 1, 3, 5 });
-		auto list2 = ListNodeCreator::MakeNumericList({ 2, 4, 6 });
-		ListNodeHelper::Print("Merge1", list1);
-		ListNodeHelper::Print("Merge1", list2);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
-		});
-
-	ListNodeTester::MakeTest<int>("Merge2", [] {
-		auto list1 = ListNodeCreator::MakeNumericList({ 1, 2, 3 });
-		auto list2 = (ListNode<int>*)nullptr; // empty
-		ListNodeHelper::Print("Merge2", list1);
-		ListNodeHelper::Print("Merge2", list2);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
-		});
-
-	ListNodeTester::MakeTest<int>("Merge3", [] {
-		auto list1 = ListNodeCreator::MakeNumericList({ 1, 5, 7 });
-		auto list2 = ListNodeCreator::MakeNumericList({ 4 });
-		ListNodeHelper::Print("Merge3", list1);
-		ListNodeHelper::Print("Merge3", list2);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
-		});
-
-	ListNodeTester::MakeTest<int>("Merge4", [] {
-		auto list1 = (ListNode<int>*)nullptr;
-		auto list2 = (ListNode<int>*)nullptr;
-		ListNodeHelper::Print("Merge4", list1);
-		ListNodeHelper::Print("Merge4", list2);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
-		});
-
-	ListNodeTester::MakeTest<int>("Merge5", [] {
-		auto list1 = ListNodeCreator::MakeNumericList({ 1, 2, 2, 4 });
-		auto list2 = ListNodeCreator::MakeNumericList({ 2, 3, 4 });
-		ListNodeHelper::Print("Merge5", list1);
-		ListNodeHelper::Print("Merge5", list2);
-		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
 		});
 
 	ListNodeTester::MakeTest<int>("No203", [] {
