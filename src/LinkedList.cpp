@@ -78,6 +78,19 @@ namespace ListNodeHelper
 		Print(head);
 	}
 
+	template <typename T>
+	int Size(ListNode<T>* head)
+	{
+		int size = 0;
+		ListNode<T>* current = head;
+		while (current != nullptr)
+		{
+			++size;
+			current = current->pNext;
+		}
+		return size;
+	}
+
 	struct LoopDetector
 	{
 		// LeetCode 141 - Detect if a loop exists in the linked list
@@ -515,6 +528,47 @@ namespace ListNodeHelper
 		return result;
 	}
 
+	// Leet Code 61 - Rotate List to the Right
+	template <typename T>
+	ListNode<T>* RotateRight(ListNode<T>* head, int k)
+	{
+		if (head == nullptr || head->pNext == nullptr || k == 0)
+		{
+			return head;
+		}
+
+		// Get the length of the list
+		int n = 1;
+		ListNode<T>* tail = head;
+		while (tail->pNext != nullptr)
+		{
+			tail = tail->pNext;
+			++n;
+		}
+
+		// Resolve k 
+		k %= n;
+		if (k < 0) k += n; // Convert to rotate right if negative
+		if (k == 0) return head;
+
+		// Create loop
+		tail->pNext = head;
+
+		// Find new tail
+		int stepsToNewTail = n - k - 1;
+		ListNode<T>* newTail = head;
+		for (int i = 0; i < stepsToNewTail; ++i)
+		{
+			newTail = newTail->pNext;
+		}
+
+		ListNode<T>* newHead = newTail->pNext;
+		newTail->pNext = nullptr;
+
+		return newHead;
+	}
+
+
 	// Leet Code 206 - Reverse a linked list
 	template <typename T>
 	ListNode<T>* Reverse(ListNode<T>* head)
@@ -664,6 +718,18 @@ int main()
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5});
 		ListNodeHelper::Print("No19b", list);
 		return ListNodeTester::TestResult<int>(ListNodeHelper::RemoveNthElementFromEnd(list, 2));
+		});
+
+	ListNodeTester::MakeTest<int>("No61a", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
+		ListNodeHelper::Print("No61a", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RotateRight(list, 1));
+		});
+
+	ListNodeTester::MakeTest<int>("No61b", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
+		ListNodeHelper::Print("No61b", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::RotateRight(list, 7));
 		});
 
 	ListNodeTester::MakeTest<int>("No82a", [] {
