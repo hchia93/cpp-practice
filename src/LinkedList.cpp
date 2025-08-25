@@ -8,6 +8,8 @@
 #include <initializer_list>
 #include <functional>
 #include <variant>
+#include <unordered_set>
+#include <queue>
 
 template <typename T>
 class ListNode
@@ -378,7 +380,33 @@ namespace ListNodeHelper
 	template <typename T>
 	ListNode<T>* RemoveElement(ListNode<T>* head, std::vector<T>& elements)
 	{
+		if (head == nullptr || elements.size() == 0)
+		{
+			return head;
+		}
 
+		std::unordered_set<int> set(elements.begin(), elements.end());
+		
+		ListNode<T> dummy;
+		dummy.pNext = head;
+
+		ListNode<T>* tail = &dummy;
+		
+		while (tail->pNext != nullptr)
+		{
+			if (auto itr = set.find(tail->pNext->pValue); itr != set.end())
+			{
+				ListNode<T>* toDelete = tail->pNext;
+				tail->pNext = tail->pNext->pNext;
+				delete toDelete; // delete works for local, beware of double deletion from platform.
+			}
+			else
+			{
+				tail = tail->pNext;
+			}
+		}
+
+		return dummy.pNext;
 	}
 
 	// Leet Code 19 - Remove the nth node from the end of the list
@@ -416,7 +444,7 @@ namespace ListNodeHelper
 		return dummy.pNext;
 	}
 
-	// Leet Code 21 - Merge Sorted
+	// Leet Code 21 - Merge sorted
 	template <typename T>
 	ListNode<T>* Merge(ListNode<T>* head1, ListNode<T>* head2)
 	{
@@ -438,6 +466,50 @@ namespace ListNodeHelper
 			tail = tail->pNext;
 		}
 		tail->pNext = head1 ? head1 : head2;
+		return dummy.pNext;
+	}
+
+	// Leet Code 23 - Merge k-lists sorted
+	template <typename T>
+	ListNode<T>* Merge(std::vector<ListNode<T>*>& lists)
+	{
+		// cmpr follows std::greater convention so that smallest appeared at top.
+		auto cmpr = [](ListNode<T>* a, ListNode<T>* b) 
+			{
+				// WARNING : If the list never contains nullptr, these checks are obselete.
+				if (a == nullptr) return false; // a (nullptr) is lesser than b
+				if (b == nullptr) return true; // a is greater than (nullptr) b
+				return *(a->pValue) > *(b->pValue);
+			};
+
+		//priority_queue<T, SequenceContainerOfT, Compare>
+		std::priority_queue<ListNode<T>*, std::vector<ListNode<T>*>, decltype(cmpr)> minHeap(cmpr);
+
+		for (auto& node : lists)
+		{
+			if (node != nullptr)
+			{
+				minHeap.push(node);
+			}
+		}
+
+		ListNode<T> dummy; 
+		ListNode<T>* tail = &dummy;
+
+		while (!minHeap.empty())
+		{
+			ListNode<T>* smallest = minHeap.top();
+			minHeap.pop();
+
+			tail->pNext = smallest;
+			tail = tail->pNext;
+
+			if (smallest->pNext != nullptr)
+			{ 
+				minHeap.push(smallest->pNext);
+			}
+		}
+		
 		return dummy.pNext;
 	}
 
@@ -749,6 +821,18 @@ int main()
 		ListNodeHelper::Print("No21", list2);
 		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(list1, list2));
 		});
+
+	ListNodeTester::MakeTest<int>("No23", [] {
+		auto list1 = ListNodeCreator::MakeNumericList({ 1, 4, 5 });
+		auto list2 = ListNodeCreator::MakeNumericList({ 1, 3, 4 });
+		auto list3 = ListNodeCreator::MakeNumericList({ 2, 6 });
+		ListNodeHelper::Print("No23", list1);
+		ListNodeHelper::Print("No23", list2);
+		ListNodeHelper::Print("No23", list3);
+		std::vector<ListNode<int>*> lists = { list1, list2, list3 };
+		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(lists));
+		});
+
 
 	ListNodeTester::MakeTest<int>("No61a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
