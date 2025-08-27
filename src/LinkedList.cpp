@@ -668,12 +668,72 @@ namespace ListNodeHelper
 	ListNode<T>* Reverse(ListNode<T>* head)
 	{
 		ListNode<T> dummy;
-		while (head)
+		while (head != nullptr)
 		{
-			ListNode<T>* next = head->pNext;
+			ListNode<T>* tmp = head->pNext;
 			head->pNext = dummy.pNext;
 			dummy.pNext = head;
-			head = next;
+			head = tmp;
+		}
+		return dummy.pNext;
+
+		// Note:
+		// Taking list 4->3->2 as example
+		// h = 4
+		// (4)->[(3)]...			>>> (4)->[(nil)]
+		// (d)->[(nil)]				>>> (d)->[(4)->(nil)]  
+		// h = 3
+		// (3)->[(2)]...			>>> (3)->[(4)->(nil)]
+	    // (d)->[(4)->(nil)]		>>> (d)->[(3)->(4)->(nil)]
+		// h = 2
+		// (2)->[(nil)]				>>> (2)->[(3)->(4)->(nil)]
+	    // (d)->[(3)->(4)->(nil)]	>>> (d)->[(2)->(3)->(4)->(nil)]
+	}
+
+	// Leet Code 25 - Reverse nodes in k-group
+	template <typename T>
+	ListNode<T>* Reverse(ListNode<T>* head, int k)
+	{
+		if (head == nullptr || k == 1)
+		{
+			return head;
+		}
+
+		ListNode<T> dummy;
+		dummy.pNext = head;
+		ListNode<T>* previousGroupTail = &dummy;
+
+		while (true)
+		{
+			// find k-th
+			ListNode<T>* kTh = previousGroupTail;
+			for (int i = 0; i < k && kTh != nullptr; ++i)
+			{
+				kTh = kTh->pNext;
+			}
+
+			if (kTh == nullptr)
+			{
+				break;
+			}
+			
+			// track group heads
+			ListNode<T>* groupHead = previousGroupTail->pNext;
+			ListNode<T>* nextGroupHead = kTh->pNext;
+
+			// reverse group
+			ListNode<T>* previous = nextGroupHead;
+			ListNode<T>* current = groupHead;
+			while (current != nextGroupHead)
+			{
+				ListNode<T>* tmp = current->pNext;
+				current->pNext = previous;
+				previous = current;
+				current = tmp;
+			}
+
+			previousGroupTail->pNext = kTh;
+			previousGroupTail = groupHead;
 
 		}
 		return dummy.pNext;
@@ -802,6 +862,7 @@ namespace ListNodeTester
 
 int main()
 {
+#if 0
 	ListNodeTester::MakeTest<int>("No19a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5, 6, 7, 8 });
 		ListNodeHelper::Print("No19a", list);
@@ -832,8 +893,15 @@ int main()
 		std::vector<ListNode<int>*> lists = { list1, list2, list3 };
 		return ListNodeTester::TestResult<int>(ListNodeHelper::Merge(lists));
 		});
+#endif 
 
+	ListNodeTester::MakeTest<int>("No25", [] {
+		auto list = ListNodeCreator::MakeNumericList({ 5, 4, 3, 2, 1 });
+		ListNodeHelper::Print("No25", list);
+		return ListNodeTester::TestResult<int>(ListNodeHelper::Reverse(list,2));
+		});
 
+#if 0
 	ListNodeTester::MakeTest<int>("No61a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 4, 5 });
 		ListNodeHelper::Print("No61a", list);
@@ -936,6 +1004,7 @@ int main()
 			ListNodeHelper::SplitByKParts(list, 3)
 		);
 		});
+#endif 
 
 	system("pause");
 	return 0;
