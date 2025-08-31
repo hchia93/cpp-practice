@@ -1,4 +1,4 @@
-# Readme
+# cpp-practice
 
 This repository is a personal collection of **C++ practice code, algorithm problems, and topic explorations**.
 It serves as a workspace for experimenting with ideas, writing solutions to coding challenges, and consolidating small, self-contained code samples.
