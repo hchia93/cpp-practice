@@ -444,7 +444,7 @@ namespace ListNodeHelper
 		return dummy.pNext;
 	}
 
-	// Leet Code 21 - Merge sorted
+	// Leet Code 21 - Merge Sorted
 	template <typename T>
 	ListNode<T>* Merge(ListNode<T>* head1, ListNode<T>* head2)
 	{
@@ -913,8 +913,6 @@ int main()
 		ListNodeHelper::Print("No61b", list);
 		return ListNodeTester::TestResult<int>(ListNodeHelper::RotateRight(list, 7));
 		});
-
-
 
 	ListNodeTester::MakeTest<int>("No82a", [] {
 		auto list = ListNodeCreator::MakeNumericList({ 1, 2, 3, 3, 3, 4, 4, 5 });
