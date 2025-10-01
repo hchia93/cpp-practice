@@ -1,19 +1,21 @@
-# cpp-practice
+# cpp-topics
 
-This repository is a personal collection of **C++ practice code, algorithm problems, and topic explorations**.
-It serves as a workspace for experimenting with ideas, writing solutions to coding challenges, and consolidating small, self-contained code samples.
+This repository is a curated collection of **C++ practice code, algorithmic problem solutions, and topic-driven explorations**.  
+It serves as a structured workspace for consolidating small, self-contained experiments that focus on both **fundamentals** and **system-level concepts**.
 
-## Contents
-### Topic-Based Collections
-Focused explorations of specific areas, such as:
-- Linked lists
-- Trees and traversal techniques
-- Thread pools and concurrency
-- Other utilities or patterns of interest
-- Test Questions & Experiments
+## Structure
+### Topic-Based Explorations
+Organized by areas of study, including:
+- **Data Structures**: Linked lists, trees, graphs
+- **Algorithms**: Sorting, dynamic programming, greedy methods
+- **Concurrency**: Thread pools, synchronization patterns, parallel execution
+- **Utilities & Patterns**: Custom helpers, allocators, or design practices
+- **Test Questions & Experiments**: Problem-solving exercises and standalone snippets
 
 ## Notes
-These files are practice-oriented, not production-ready libraries.
-Code here is not tied to any specific application or user problem
+- Code here is **practice-oriented**, not production-ready.
+- Each file is written to be **self-contained** for clarity and focus.
+- The repository will continue to evolve as new topics, problem sets, and implementations are explored.
 
-The repository evolves as I explore new topics, problem sets, and implementations.
+## Purpose
+This project reflects an **ongoing learning journey** in modern C++, combining algorithmic problem-solving with explorations in **system programming** and **performance-critical patterns**.
